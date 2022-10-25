@@ -12,7 +12,7 @@ import {useRouter} from "next/router";
 import {formatReal} from '../../../app/util/money/index'
 
 
-const msgCampoObrigatorio = "Campo Obrigatorio"
+const msgCampoObrigatorio ="Campo Obrigatório";
 
 const validationSchema = yup.object().shape({
     sku: yup.string().trim().required(msgCampoObrigatorio),
@@ -29,40 +29,32 @@ interface FormErros {
     descricao?: string;
 }
 
-
 export const CadastroProdutos: React.FC = () => {
 
     const service = useProdutoService()
-
-    const [sku, setSku] = useState<string>('')
-    const [preco, setPreco] = useState<string>('')
-    const [nome, setNome] = useState<string>('')
-    const [descricao, setDescricao] = useState<string>('')
-
-    const [id, setId] = useState<string>()
-    const [dataCadastro, setDataCadastro] = useState<string>()
-    const [messages, setMessages] = useState<Array<Alert>>([])
-    const [errors, setErrors] = useState<FormErros>({})
-
-
-    //na mesma tela cadastro produto carregar de acordo com o produto selecionado na tela de listagem produtos
+    const [ sku, setSku ] = useState<string>('')
+    const [ preco, setPreco ] = useState<string>('')
+    const [ nome, setNome ] = useState<string>('')
+    const [ descricao, setDescricao ] = useState<string>('')
+    const [ id, setId ] = useState<string>('')
+    const [ cadastro, setCadastro ] = useState<string>('')
+    const [ messages, setMessages ] = useState<Array<Alert>>([])
+    const [ errors, setErrors ] = useState<FormErros>({})
     const router = useRouter();
-    const {id: queryId} = router.query;
-    useEffect(()=> {
-        if (queryId) {
+    const { id: queryId  } = router.query;
+
+    useEffect( () => {
+        if(queryId){
             service.carregarProduto(queryId).then(produtoEncontrado => {
                 setId(produtoEncontrado.id)
                 setSku(produtoEncontrado.sku)
                 setNome(produtoEncontrado.nome)
                 setDescricao(produtoEncontrado.descricao)
-                setPreco(formatReal(`${produtoEncontrado.preco}`))
-                setDataCadastro(produtoEncontrado.cadastro || '')
+                setPreco( formatReal(`${produtoEncontrado.preco}`))
+                setCadastro(produtoEncontrado.cadastro || '')
             })
         }
-    }, [queryId])
-
-
-
+    } , [ queryId ] )
 
     const submit = () => {
         const produto: Produto = {
@@ -76,25 +68,27 @@ export const CadastroProdutos: React.FC = () => {
         validationSchema.validate(produto).then(obj => {
             setErrors({})
 
-            if (id) {
+            if(id){
                 service
                     .atualizar(produto)
                     .then(response => {
                         setMessages([{
-                            tipo: "success", texto: "atualizado com sucesso!"
+                            tipo: "success", texto: "Produto atualizado com sucesso!"
                         }])
                     })
-            } else {
+            }else{
+
                 service
                     .salvar(produto)
                     .then(produtoResposta => {
                         setId(produtoResposta.id)
-                        setDataCadastro(produtoResposta.dataCadastro)
+                        setCadastro(produtoResposta.cadastro)
                         setMessages([{
-                            tipo: "success", texto: "salvo com sucesso!"
+                            tipo: "success", texto: "Produto Salvo com sucesso!"
                         }])
                     })
             }
+
         }).catch(err => {
             const field = err.path;
             const message = err.message;
@@ -103,57 +97,59 @@ export const CadastroProdutos: React.FC = () => {
                 [field]: message
             })
         })
-    }
 
+
+    }
 
     return (
         <Layout titulo="Produtos" mensagens={messages}>
             {id &&
                 <div className="columns">
-                    <Input label="Codigo:"
-                           id="inputId"
+                    <Input label="Código:"
                            columnClasses="is-half"
                            value={id}
+                           id="inputId"
                            disabled={true}
                     />
-                    <Input label="Data Cadastro"
-                           id="inputDataCadastro"
-                           type="text"
+
+                    <Input label="Data Cadastro:"
                            columnClasses="is-half"
-                           value={dataCadastro}
-                           disabled={true}
+                           value={cadastro}
+                           id="inputDataCadastro"
+                           disabled
                     />
                 </div>
             }
 
             <div className="columns">
-                <Input label="SKU *"
-                       id="inputSKU"
+                <Input label="SKU: *"
                        columnClasses="is-half"
+                       onChange={ e => setSku(e.target.value)}
                        value={sku}
-                       onChange={setSku}
+                       id="inputSku"
                        placeholder="Digite o SKU do produto"
                        error={errors.sku}
                 />
-                <Input label="Preço *"
-                       id="inputPreco"
+
+                <Input label="Preço: *"
                        columnClasses="is-half"
+                       onChange={e => setPreco(e.target.value)}
                        value={preco}
-                       onChange={setPreco}
-                       currency={true}
-                       placeholder="Digite o preço do produto"
+                       id="inputPreco"
+                       placeholder="Digite o Preço do produto"
+                       currency
+                       maxLength={16}
                        error={errors.preco}
                 />
             </div>
 
             <div className="columns">
-                <Input label="Nome *"
-                       id="inputNome"
-                       type="text"
+                <Input label="Nome: *"
                        columnClasses="is-full"
+                       onChange={e => setNome(e.target.value)}
                        value={nome}
-                       onChange={setNome}
-                       placeholder="Digite o nome do produto"
+                       id="inputNome"
+                       placeholder="Digite o Nome do produto"
                        error={errors.nome}
                 />
             </div>
@@ -163,10 +159,9 @@ export const CadastroProdutos: React.FC = () => {
                     <label className="label" htmlFor="inputDesc">Descrição: *</label>
                     <div className="control">
                     <textarea className="textarea"
-                              id="inputDesc"
-                              value={descricao}
-                              onChange={event => setDescricao(event.target.value)}
-                              placeholder="Digite descrição do produto"/>
+                              id="inputDesc" value={descricao}
+                              onChange={ event => setDescricao(event.target.value) }
+                              placeholder="Digite a Descrição detalhada do produto" />
                         {errors.descricao &&
                             <p className="help is-danger">{errors.descricao}</p>
                         }
@@ -175,17 +170,18 @@ export const CadastroProdutos: React.FC = () => {
             </div>
 
             <div className="field is-grouped">
-                <div className="control">
-                    <button className="button is-link" onClick={submit}>
-                        {id ? "Atualizar" : "Salvar"}
+                <div className="control is-link">
+                    <button onClick={submit} className="button">
+                        { id ? "Atualizar" : "Salvar" }
                     </button>
                 </div>
                 <div className="control">
                     <Link href="/consultas/produtos">
-                        <button className="button is-link is-light">Voltar</button>
+                        <button className="button">Voltar</button>
                     </Link>
                 </div>
             </div>
+
         </Layout>
     )
 }

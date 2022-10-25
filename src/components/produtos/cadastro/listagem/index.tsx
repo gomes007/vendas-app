@@ -25,8 +25,6 @@ export const ListagemProdutos: React.FC = () => {
         setLista(result?.data || [])
     }, [result])
 
-
-    //direcionar para a tela cadastro produtos (usar mesmo form)
     const editar = (produto: Produto) => {
         const url = `/cadastros/produtos?id=${produto.id}`
         Router.push(url)
